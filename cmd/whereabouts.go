@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/containernetworking/cni/pkg/skel"
 	cnitypes "github.com/containernetworking/cni/pkg/types"
 	"github.com/containernetworking/cni/pkg/types/current"
 	"github.com/containernetworking/cni/pkg/version"
+	"github.com/containernetworking/plugins/pkg/ns"
 	"github.com/dougbtv/whereabouts/pkg/allocate"
 	"github.com/dougbtv/whereabouts/pkg/config"
 	"github.com/dougbtv/whereabouts/pkg/logging"
 	"github.com/dougbtv/whereabouts/pkg/storage"
 	"github.com/dougbtv/whereabouts/pkg/types"
+	"net"
 )
 
 func main() {
@@ -31,6 +32,26 @@ func cmdAdd(args *skel.CmdArgs) error {
 		return err
 	}
 	logging.Debugf("ADD - IPAM configuration successfully read: %+v", filterConf(*ipamConf))
+
+	logging.Debugf("validateIfName: %s, %s", args.Netns, args.IfName)
+	podNs, err := ns.GetNS(args.Netns)
+	if err != nil {
+		return logging.Errorf("validateIfName: no net namespace %s found: %v", args.Netns, err)
+	}
+
+	var hardwareaddr string
+
+	_ = podNs.Do(func(_ ns.NetNS) error {
+		netInterface, err := net.InterfaceByName(args.IfName)
+		if err != nil {
+			logging.Errorf("error getting interface: %s", err)
+			return err
+		}
+		hardwareaddr = fmt.Sprintf("%s", netInterface.HardwareAddr)
+		return nil
+	})
+
+	logging.Debugf("Using mac address: %s", hardwareaddr)
 
 	// Initialize our result, and assign DNS & routing.
 	result := &current.Result{}

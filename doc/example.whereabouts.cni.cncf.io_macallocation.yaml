@@ -1,0 +1,7 @@
+apiVersion: "whereabouts.cni.cncf.io/v1alpha1"
+kind: "MacAllocation"
+metadata:
+  name: "9a-63-27-c5-98-f8"
+  namespace: "default"
+spec:
+  ipaddress: "192.168.2.205"
