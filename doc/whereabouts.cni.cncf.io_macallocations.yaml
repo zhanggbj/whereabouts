@@ -1,3 +1,4 @@
+
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -7,13 +8,12 @@ metadata:
 spec:
   group: whereabouts.cni.cncf.io
   names:
-    kind: MacAllocation
-    singular: macallocation
+    kind: Macallocation
     plural: macallocations
   scope: ""
   validation:
     openAPIV3Schema:
-      description: MacAllocation is the Schema for the macallocation API
+      description: macallocation is the Schema for the macallocations API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -28,14 +28,15 @@ spec:
         metadata:
           type: object
         spec:
-          description: MacAllocationSpec defines the desired state of MacAllocation
+          description: MacallocationSpec defines the desired state of Macallocation
           properties:
             ipaddress:
-              type: string
-              description: IPAddress represents the IP as allocated for a specific
-                MAC address.
+              type: integer
           required:
           - ipaddress
+          type: object
+      required:
+      - spec
       type: object
   version: v1alpha1
   versions:

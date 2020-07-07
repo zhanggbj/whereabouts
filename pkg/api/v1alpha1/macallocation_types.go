@@ -9,7 +9,7 @@ type MacallocationSpec struct {
 
 // +kubebuilder:object:root=true
 
-// macallocation is the Schema for the macallocations API
+// Macallocation is the Schema for the macallocations API
 type Macallocation struct {
   metav1.TypeMeta   `json:",inline"`
   metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -20,7 +20,6 @@ type Macallocation struct {
 // +kubebuilder:object:root=true
 
 // MacallocationList contains a list of Macallocation
-
 type MacallocationList struct {
   metav1.TypeMeta `json:",inline"`
   metav1.ListMeta `json:"metadata,omitempty"`
