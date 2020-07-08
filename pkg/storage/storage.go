@@ -33,7 +33,9 @@ type Store interface {
 }
 
 // IPManagement manages ip allocation and deallocation from a storage perspective
-func IPManagement(mode int, ipamConf types.IPAMConfig, containerID string) (net.IPNet, error) {
+func IPManagement(mode int, ipamConf types.IPAMConfig, containerID string, hardwareaddr string) (net.IPNet, error) {
+
+	logging.Debugf("!bang Using mac address: %s", hardwareaddr)
 
 	logging.Debugf("IPManagement -- mode: %v / host: %v / containerID: %v", mode, ipamConf.EtcdHost, containerID)
 

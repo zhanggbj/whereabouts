@@ -51,15 +51,13 @@ func cmdAdd(args *skel.CmdArgs) error {
 		return nil
 	})
 
-	logging.Debugf("Using mac address: %s", hardwareaddr)
-
 	// Initialize our result, and assign DNS & routing.
 	result := &current.Result{}
 	result.DNS = ipamConf.DNS
 	result.Routes = ipamConf.Routes
 
 	logging.Debugf("Beginning IPAM for ContainerID: %v", args.ContainerID)
-	newip, err := storage.IPManagement(types.Allocate, *ipamConf, args.ContainerID)
+	newip, err := storage.IPManagement(types.Allocate, *ipamConf, args.ContainerID, hardwareaddr)
 	if err != nil {
 		logging.Errorf("Error assigning IP: %s", err)
 		return fmt.Errorf("Error assigning IP: %w", err)
@@ -98,7 +96,7 @@ func cmdDel(args *skel.CmdArgs) error {
 	logging.Debugf("DEL - IPAM configuration successfully read: %+v", filterConf(*ipamConf))
 	logging.Debugf("ContainerID: %v", args.ContainerID)
 
-	_, err = storage.IPManagement(types.Deallocate, *ipamConf, args.ContainerID)
+	_, err = storage.IPManagement(types.Deallocate, *ipamConf, args.ContainerID, "")
 	if err != nil {
 		logging.Errorf("Error deallocating IP: %s", err)
 		return fmt.Errorf("Error deallocating IP: %s", err)
