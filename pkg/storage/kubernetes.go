@@ -118,6 +118,30 @@ func (i *KubernetesIPAM) GetIPPool(ctx context.Context, ipRange string) (IPPool,
 	return &KubernetesIPPool{i.client, i.containerID, firstIP, pool}, nil
 }
 
+func (i *KubernetesIPAM) getMac(ctx context.Context, name string, iprange string) (*whereaboutsv1alpha1.IPPool, error) {
+	pool := &whereaboutsv1alpha1.IPPool{
+		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: i.namespace},
+	}
+	if err := i.client.Get(ctx, types.NamespacedName{Name: name, Namespace: i.namespace}, pool); errors.IsNotFound(err) {
+		// pool does not exist, create it
+		pool.ObjectMeta.Name = name
+		pool.Spec.Range = iprange
+		pool.Spec.Allocations = make(map[string]whereaboutsv1alpha1.IPAllocation)
+		if err := i.client.Create(ctx, pool); errors.IsAlreadyExists(err) {
+			// the pool was just created -- allow retry
+			return nil, &temporaryError{err}
+		} else if err != nil {
+			return nil, fmt.Errorf("k8s create error: %s", err)
+		}
+		// if the pool was created for the first time, trigger another retry of the allocation loop
+		// so all of the metadata / resourceVersions are populated as necessary by the `client.Get` call
+		return nil, &temporaryError{fmt.Errorf("k8s pool initialized")}
+	} else if err != nil {
+		return nil, fmt.Errorf("k8s get error: %s", err)
+	}
+	return pool, nil
+}
+
 func (i *KubernetesIPAM) getPool(ctx context.Context, name string, iprange string) (*whereaboutsv1alpha1.IPPool, error) {
 	pool := &whereaboutsv1alpha1.IPPool{
 		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: i.namespace},
@@ -192,7 +216,7 @@ func (p *KubernetesIPPool) Update(ctx context.Context, reservations []whereabout
 	// add additional tests to the patch
 	ops := []jsonpatch.Operation{
 		// ensure patch is applied to appropriate resource version only
-		jsonpatch.Operation{Operation: "test", Path: "/metadata/resourceVersion", Value: orig.ObjectMeta.ResourceVersion},
+		{Operation: "test", Path: "/metadata/resourceVersion", Value: orig.ObjectMeta.ResourceVersion},
 	}
 	for _, o := range patch {
 		// safeguard add ops -- "add" will update existing paths, this "test" ensures the path is empty

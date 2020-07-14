@@ -35,9 +35,7 @@ type Store interface {
 // IPManagement manages ip allocation and deallocation from a storage perspective
 func IPManagement(mode int, ipamConf types.IPAMConfig, containerID string, hardwareaddr string) (net.IPNet, error) {
 
-	logging.Debugf("!bang Using mac address: %s", hardwareaddr)
-
-	logging.Debugf("IPManagement -- mode: %v / host: %v / containerID: %v", mode, ipamConf.EtcdHost, containerID)
+	logging.Debugf("IPManagement -- mode: %v / host: %v / containerID: %v / mac address: %v", mode, ipamConf.EtcdHost, containerID, hardwareaddr)
 
 	var newip net.IPNet
 	// Skip invalid modes
@@ -70,6 +68,8 @@ func IPManagement(mode int, ipamConf types.IPAMConfig, containerID string, hardw
 		logging.Errorf("IPAM connectivity error: %v", err)
 		return newip, err
 	}
+
+	// Check for the presence of a mac address entry...
 
 	// handle the ip add/del until successful
 RETRYLOOP:
